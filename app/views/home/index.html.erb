@@ -1,0 +1,116 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <form name="geoformFromGoogleMap" method="post" action="">
+    <table>
+    <tr>
+    <td align="middle" valign="top">地点名称</td>
+    <td align="middle" valign="top">地理纬度</td>
+    <td align="middle" valign="top">地理经度</td>
+    <td align="middle" valign="top">地点描述</td>
+    </tr>
+     <tr>
+    <td><input type="text" name="geoName"></td>
+    <td><input type="text" name="geoLat"></td>
+    <td><input type="text" name="geoLng"></td>
+    <td><input type="text" style="width:400px" name="geoDesci"></td>
+    </tr>  
+</table>    
+ <p>  
+  <input type="button" onclick="getLocation()" value="获取位置"/>
+  <input type="button" onclick="AddFromGoogleMapClick()" value="添加"/>
+  <input type="button" onclick="getNextGeoRecord()" value="下一条"/>
+  <input type="reset"  onclick="onReset()" value="重置"/></p>
+ </form>
+    <style type="text/css">
+    table{   margin: 10px 0px 0px 0px; ;border: 5px inset red; background: orange}
+      html { height: 100% }
+      body { height: 100%;}
+      form{height: 130px; border: 1px inset gold; background: green}
+      #map_canvas { height: 100%; bandwidth: 100%; margin: 10px 0px 0px 0px; padding: 100px 0px 0px 0px; border: 10px inset gold}
+    </style>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBcE-aSd7BwapH3xf_Ig61pzc954cBFL00&sensor=true">
+    </script>
+    <script type="text/javascript">
+      var geocoder;
+      var map;
+      function initialize() {	
+	geocoder = new google.maps.Geocoder();
+	var mapOptions = {
+          center: new google.maps.LatLng(31.20858,121.441612),
+          zoom: 12,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("map_canvas"),
+            mapOptions);
+      }
+      
+var geoResult;
+var resultFlag;
+function getLocation()
+{
+ geoResult = new Array();
+ geocoder.geocode({address: geoformFromGoogleMap.geoName.value},
+  function resLoc(results, status)//获取信息成功调用此函数
+  {
+   if (status == google.maps.GeocoderStatus.OK)//成功
+   {
+     resultFlag=0;
+     //设置地图的中心位置
+     map.setCenter(results[0].geometry.location);
+     //将返回结果的第一条数据填充到表单中
+     geoformFromGoogleMap.geoLat.value = results[0].geometry.location.lat();
+     geoformFromGoogleMap.geoLng.value = results[0].geometry.location.lng();
+     geoformFromGoogleMap.geoDesci.value = results[0].formatted_address;
+     //在地图上标记该位置
+     var beachMarker = new google.maps.Marker({
+         position: results[0].geometry.location,
+         map: map,
+    });
+    //将获取到的所有结果存到数组中
+    for(i=0;i<results.length;i++)
+    {
+      geoResult.push(results[i]);
+    }
+   }
+   else
+   {
+     alert(status);
+   }
+  }
+ );
+}
+
+function getNextGeoRecord()
+{
+ resultFlag=resultFlag+1;
+ if(resultFlag<geoResult.length)
+ {
+   //设置地图的中心点
+   var ri = resultFlag;
+   map.setCenter(geoResult[ri].geometry.location);
+   //填充表单
+   geoformFromGoogleMap.geoLat.value = geoResult[ri].geometry.location.lat();
+   geoformFromGoogleMap.geoLng.value = geoResult[ri].geometry.location.lng();
+   geoformFromGoogleMap.geoDesci.value = geoResult[ri].formatted_address;
+   //在地图上添加标记
+   var beachMarker = new google.maps.Marker({
+     position: geoResult[ri].geometry.location,
+     map: map,
+   });
+ }
+}
+
+function onReset()
+{
+ resultFlag=geoResult.size();
+}
+    </script>
+  </head>
+  <body onload="initialize()">
+    <div id="map_canvas" style="width:100%; height:100%"></div>
+<p>由此进入<%= link_to "文章管理", articles_path %> 页面。 </p>
+  </body>
+</html>
